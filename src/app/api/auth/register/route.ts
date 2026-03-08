@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma"
 import { createAdminNotification } from "@/lib/notifications"
 import { logUserActivity } from "@/lib/activity"
 import { consumeRateLimit, getRequestIp } from "@/lib/rate-limit"
+import { assertSameOrigin } from "@/lib/csrf"
+
+export const runtime = "nodejs"
 
 const registerSchema = z.object({
     name: z.string().min(2),
@@ -17,6 +20,8 @@ const REGISTER_WINDOW_MS = 60 * 60 * 1000
 
 export async function POST(req: Request) {
     try {
+        assertSameOrigin(req)
+
         const rateLimit = consumeRateLimit(
             `register:${getRequestIp(req)}`,
             REGISTER_LIMIT,
@@ -46,7 +51,12 @@ export async function POST(req: Request) {
 
         if (existingUser) {
             return NextResponse.json(
-                { success: false, message: "User with this email already exists." },
+                {
+                    success: false,
+                    message: existingUser.password
+                        ? "User with this email already exists."
+                        : "An account exists with this email via Google sign-in.",
+                },
                 { status: 409 }
             )
         }
@@ -58,6 +68,7 @@ export async function POST(req: Request) {
                 name,
                 email: normalizedEmail,
                 password: hashedPassword,
+                provider: "LOCAL",
             },
             select: { id: true, name: true, email: true, role: true },
         })
@@ -82,6 +93,13 @@ export async function POST(req: Request) {
                 { status: 400 }
             )
         }
+        if (error instanceof Error && error.message === "CSRF_INVALID_ORIGIN") {
+            return NextResponse.json(
+                { success: false, message: "Invalid request origin." },
+                { status: 403 }
+            )
+        }
+        console.error("Register API failed:", error)
         return NextResponse.json(
             { success: false, message: "Internal server error." },
             { status: 500 }

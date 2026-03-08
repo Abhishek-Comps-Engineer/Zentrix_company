@@ -22,11 +22,15 @@ export function handleApiError(error: unknown) {
         { status: 403 }
       )
     }
+    if (error.message === "CSRF_INVALID_ORIGIN") {
+      return NextResponse.json(
+        { success: false, message: "Invalid request origin." },
+        { status: 403 }
+      )
+    }
   }
 
-  if (process.env.NODE_ENV === "development") {
-    console.error("API route error:", error)
-  }
+  console.error("API route error:", error)
 
   return NextResponse.json(
     { success: false, message: "Internal server error" },

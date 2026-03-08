@@ -8,13 +8,10 @@ import { Hexagon, Menu } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
@@ -27,9 +24,14 @@ const links = [
 ]
 
 type AuthUser = {
+    id: string
     name: string
     email: string
-    role: string
+    role: "USER" | "ADMIN"
+    image?: string | null
+    avatarUrl?: string | null
+    provider: "LOCAL" | "GOOGLE"
+    createdAt: string
 }
 
 function getInitials(name: string) {
@@ -81,6 +83,7 @@ export function Navbar() {
     const pathname = usePathname()
     const router = useRouter()
     const [isOpen, setIsOpen] = React.useState(false)
+    const [profileMenuOpen, setProfileMenuOpen] = React.useState(false)
     const [user, setUser] = React.useState<AuthUser | null>(null)
 
     React.useEffect(() => {
@@ -106,13 +109,15 @@ export function Navbar() {
         }
     }, [])
 
-    const showUserDashboard = user?.role === "USER"
     const dashboardHref = user?.role === "ADMIN" ? "/admin" : "/dashboard"
-    const userInitials = getInitials(user?.name || "User")
+    const isLoggedIn = Boolean(user)
+    const initials = getInitials(user?.name || "User")
 
     const handleLogout = async () => {
         await fetch("/api/auth/logout", { method: "POST" })
         setUser(null)
+        setProfileMenuOpen(false)
+        setIsOpen(false)
         router.push("/")
         router.refresh()
     }
@@ -134,10 +139,10 @@ export function Navbar() {
                             {link.label}
                         </Link>
                     ))}
-                    {showUserDashboard && (
+                    {isLoggedIn && (
                         <Link
                             href={dashboardHref}
-                            className={`transition-colors hover:text-foreground/80 ${pathname.startsWith("/dashboard") ? "text-foreground" : "text-foreground/60"
+                            className={`transition-colors hover:text-foreground/80 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "text-foreground" : "text-foreground/60"
                                 }`}
                         >
                             Dashboard
@@ -147,44 +152,57 @@ export function Navbar() {
                 <div className="flex items-center space-x-4">
                     <div className="hidden md:flex items-center space-x-2">
                         <ModeToggle />
-                      
-                        <Button variant="outline" asChild>
-                            <Link href="/login">Client Panel</Link>
-                        </Button>
-                        <Button asChild>
-                            <Link href="/request-service">Request Service</Link>
-                        </Button>
-                        {user ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="rounded-full p-0">
-                                        <Avatar>
-                                            <AvatarFallback>{userInitials}</AvatarFallback>
-                                        </Avatar>
-                                        <span className="sr-only">Open profile</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-64">
-                                    <DropdownMenuLabel>Profile</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <div className="px-2 py-1.5">
-                                        <p className="text-xs text-muted-foreground">Name</p>
-                                        <p className="text-sm font-medium">{user.name}</p>
-                                    </div>
-                                    <div className="px-2 py-1.5">
-                                        <p className="text-xs text-muted-foreground">Email</p>
-                                        <p className="text-sm font-medium">{user.email}</p>
-                                    </div>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={handleLogout} variant="destructive">
-                                        Logout
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : (
+
+                        {!isLoggedIn && (
                             <Button variant="outline" asChild>
-                                <Link href="/login">Log In</Link>
+                                <Link href="/login">Login</Link>
                             </Button>
+                        )}
+
+                        {isLoggedIn && (
+                            <>
+                                <Button variant="outline" asChild>
+                                    <Link href={dashboardHref}>Dashboard</Link>
+                                </Button>
+                                <DropdownMenu
+                                    open={profileMenuOpen}
+                                    onOpenChange={setProfileMenuOpen}
+                                >
+                                    <DropdownMenuTrigger asChild>
+                                        <button
+                                            type="button"
+                                            aria-label="Open profile"
+                                            className="rounded-full"
+                                        >
+                                            <Avatar className="size-9 border bg-muted">
+                                                <AvatarImage
+                                                    src={user?.avatarUrl || user?.image || undefined}
+                                                    alt={user?.name || "Profile"}
+                                                />
+                                                <AvatarFallback>{initials}</AvatarFallback>
+                                            </Avatar>
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" sideOffset={8} className="w-64 p-3">
+                                        <div className="space-y-1 text-sm">
+                                            <p className="font-medium">{user?.name}</p>
+                                            <p className="text-muted-foreground">{user?.email}</p>
+                                        </div>
+                                        <div className="mt-3 flex items-center justify-end gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => setProfileMenuOpen(false)}
+                                            >
+                                                Close
+                                            </Button>
+                                            <Button size="sm" variant="destructive" onClick={handleLogout}>
+                                                Logout
+                                            </Button>
+                                        </div>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </>
                         )}
                     </div>
                     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -217,10 +235,10 @@ export function Navbar() {
                                         {link.label}
                                     </Link>
                                 ))}
-                                {showUserDashboard && (
+                                {isLoggedIn && (
                                     <Link
                                         href={dashboardHref}
-                                        className={`text-lg font-medium transition-colors hover:text-foreground/80 ${pathname.startsWith("/dashboard") ? "text-foreground" : "text-foreground/60"
+                                        className={`text-lg font-medium transition-colors hover:text-foreground/80 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "text-foreground" : "text-foreground/60"
                                             }`}
                                         onClick={() => setIsOpen(false)}
                                     >
@@ -229,27 +247,35 @@ export function Navbar() {
                                 )}
                             </div>
                             <div className="flex flex-col space-y-4 pr-6">
-                                <Button variant="outline" asChild className="w-full justify-start">
-                                    <Link href="/login" onClick={() => setIsOpen(false)}>
-                                        Client Panel
-                                    </Link>
-                                </Button>
-                                {showUserDashboard && (
+                                {!isLoggedIn && (
                                     <Button variant="outline" asChild className="w-full justify-start">
-                                        <Link href={dashboardHref} onClick={() => setIsOpen(false)}>
-                                            Dashboard
+                                        <Link href="/login" onClick={() => setIsOpen(false)}>
+                                            Login
                                         </Link>
                                     </Button>
                                 )}
-                                <Button asChild className="w-full justify-start">
-                                    <Link href="/request-service" onClick={() => setIsOpen(false)}>
-                                        Request Service
-                                    </Link>
-                                </Button>
+                                {isLoggedIn && (
+                                    <>
+                                        <Button variant="outline" asChild className="w-full justify-start">
+                                            <Link href={dashboardHref} onClick={() => setIsOpen(false)}>
+                                                Dashboard
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full justify-start"
+                                            onClick={() => {
+                                                setIsOpen(false)
+                                                setProfileMenuOpen(true)
+                                            }}
+                                        >
+                                            Profile
+                                        </Button>
+                                    </>
+                                )}
                                 <div className="pt-2">
                                     <ModeToggle />
                                 </div>
-
                             </div>
                         </SheetContent>
                     </Sheet>

@@ -2,11 +2,14 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import * as z from "zod"
-import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
 import { consumeRateLimit, getRequestIp, resetRateLimit } from "@/lib/rate-limit"
 import { getJwtSecret, isAuthConfigError } from "@/lib/auth"
 import { logUserActivity } from "@/lib/activity"
+import { assertSameOrigin } from "@/lib/csrf"
+import { setAuthCookie } from "@/lib/auth-cookie"
+
+export const runtime = "nodejs"
 
 const loginSchema = z.object({
     email: z.string().email(),
@@ -18,6 +21,8 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000
 
 export async function POST(req: Request) {
     try {
+        assertSameOrigin(req)
+
         const body = await req.json()
         const emailCandidate =
             typeof body?.email === "string"
@@ -47,7 +52,7 @@ export async function POST(req: Request) {
         const { email, password } = loginSchema.parse(body)
         const normalizedEmail = email.toLowerCase().trim()
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findFirst({
             where: { email: normalizedEmail },
         })
 
@@ -55,6 +60,17 @@ export async function POST(req: Request) {
             return NextResponse.json(
                 { success: false, message: "Invalid credentials." },
                 { status: 401 }
+            )
+        }
+
+        if (!user.password) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message:
+                        "This account was created with Google. Use Continue with Google.",
+                },
+                { status: 400 }
             )
         }
 
@@ -80,14 +96,7 @@ export async function POST(req: Request) {
             { expiresIn: "1d" }
         )
 
-        // Set HTTP-only cookie
-        ;(await cookies()).set("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 60 * 60 * 24, // 1 day
-            path: "/",
-        })
+        await setAuthCookie(token)
 
         await prisma.user.update({
             where: { id: user.id },
@@ -100,7 +109,13 @@ export async function POST(req: Request) {
             {
                 success: true,
                 message: "Logged in successfully.",
-                user: { id: user.id, name: user.name, email: user.email, role: user.role }
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    provider: user.provider,
+                }
             },
             { status: 200 }
         )
@@ -117,6 +132,13 @@ export async function POST(req: Request) {
                 { status: 500 }
             )
         }
+        if (error instanceof Error && error.message === "CSRF_INVALID_ORIGIN") {
+            return NextResponse.json(
+                { success: false, message: "Invalid request origin." },
+                { status: 403 }
+            )
+        }
+        console.error("Login API failed:", error)
         return NextResponse.json(
             { success: false, message: "Internal server error." },
             { status: 500 }

@@ -64,6 +64,11 @@ export async function proxy(request: NextRequest) {
             }
         } catch {
             // Invalid token
+            if (isPublicRoute) {
+                const response = NextResponse.next()
+                response.cookies.delete("token")
+                return response
+            }
             if (isApiRoute) {
                 return NextResponse.json({ success: false, message: "Invalid token" }, { status: 401 })
             }

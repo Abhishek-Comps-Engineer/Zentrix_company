@@ -3,6 +3,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { requireAdminUser } from "@/lib/session"
 import { handleApiError } from "@/lib/api-errors"
+import { assertSameOrigin } from "@/lib/csrf"
 
 const patchSchema = z.object({
   action: z.enum(["mark-read", "mark-all-read", "clear-read"]),
@@ -26,6 +27,7 @@ export async function GET() {
 
 export async function PATCH(req: Request) {
   try {
+    assertSameOrigin(req)
     await requireAdminUser()
     const body = await req.json()
     const parsed = patchSchema.parse(body)

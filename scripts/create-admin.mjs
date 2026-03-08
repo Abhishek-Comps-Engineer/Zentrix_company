@@ -31,6 +31,7 @@ async function main() {
       name,
       email,
       password: hashedPassword,
+      provider: "LOCAL",
       role: "ADMIN",
     },
   })

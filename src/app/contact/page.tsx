@@ -21,10 +21,10 @@ import { Mail, Phone, MessageCircle, MapPin } from "lucide-react"
 const formSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
     email: z.string().email({ message: "Invalid email address." }),
-    phone: z
+    subject: z
         .string()
-        .min(7, { message: "Phone number is required." })
-        .max(20, { message: "Phone number is too long." }),
+        .min(3, { message: "Subject must be at least 3 characters." })
+        .max(140, { message: "Subject is too long." }),
     message: z.string().min(10, { message: "Message must be at least 10 characters." }),
     website: z.string().optional(),
 })
@@ -36,7 +36,7 @@ export default function ContactPage() {
         defaultValues: {
             name: "",
             email: "",
-            phone: "",
+            subject: "",
             message: "",
             website: "",
         },
@@ -50,21 +50,23 @@ export default function ContactPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values),
             })
-            const data = await res.json()
+            await res.json().catch(() => null)
 
             if (!res.ok) {
                 toast("Error", {
-                    description: data.message || "Failed to send message.",
+                    description: "Message could not be sent. Please try again later.",
                 })
                 return
             }
 
             toast("Message Sent", {
-                description: "We've received your message and will respond soon.",
+                description: "Your message has been sent successfully.",
             })
             form.reset()
         } catch {
-            toast("Error", { description: "Network error. Please try again." })
+            toast("Error", {
+                description: "Message could not be sent. Please try again later.",
+            })
         } finally {
             setLoading(false)
         }
@@ -117,9 +119,9 @@ export default function ContactPage() {
 
                             <div className="flex flex-wrap gap-3">
                                 <Button asChild variant="outline">
-                                    <a href="mailto:hello@zentrix.dev">
+                                    <a href="mailto:zentrixsoftwares@gmail.com">
                                         <Mail className="mr-2 h-4 w-4" />
-                                        Email
+                                        Email on zentrixsoftwares@gmail.com
                                     </a>
                                 </Button>
                             </div>
@@ -159,12 +161,12 @@ export default function ContactPage() {
                             />
                             <FormField
                                 control={form.control}
-                                name="phone"
+                                name="subject"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Phone</FormLabel>
+                                        <FormLabel>Subject</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="7058746797" {...field} />
+                                            <Input placeholder="Project inquiry" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -593,7 +594,12 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-3xl font-bold">Admin Control Panel</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-3xl font-bold">Admin Control Panel</h1>
+        <Button variant="outline" asChild>
+          <Link href="/admin/contact-messages">Contact Inbox</Link>
+        </Button>
+      </div>
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList>
           <TabsTrigger value="users">Manage Users</TabsTrigger>

@@ -12,6 +12,11 @@ enum Role {
   ADMIN
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
 enum RequestStatus {
   SUBMITTED
   UNDER_REVIEW
@@ -79,11 +84,24 @@ enum SupportStatus {
   CLOSED
 }
 
+enum ContactEmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum ContactMessageStatus {
+  OPEN
+  RESOLVED
+}
+
 model User {
   id                            String                            @id @default(uuid())
   name                          String
   email                         String                            @unique
-  password                      String
+  password                      String?
+  provider                      AuthProvider                      @default(LOCAL)
+  googleId                      String?                           @unique
   role                          Role                              @default(USER)
   isActive                      Boolean                           @default(true)
   lastLoginAt                   DateTime?
@@ -196,14 +214,24 @@ model ProjectMedia {
 }
 
 model ContactMessage {
-  id        String   @id @default(uuid())
-  name      String
-  email     String
-  phone     String
-  message   String
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt DateTime @default(now())
+  id           String               @id @default(uuid())
+  name         String
+  email        String
+  subject      String
+  phone        String?
+  message      String
+  emailStatus  ContactEmailStatus   @default(PENDING)
+  errorMessage String?
+  notifiedAdmin Boolean             @default(false)
+  status       ContactMessageStatus @default(OPEN)
+  resolvedAt   DateTime?
+  userId       String?
+  user         User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([emailStatus, createdAt])
+  @@index([status, createdAt])
 }
 
 model Notification {
