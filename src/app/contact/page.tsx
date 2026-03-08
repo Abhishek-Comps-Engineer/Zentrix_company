@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { Mail, Phone, MessageCircle } from "lucide-react"
+import { Mail, Phone, MessageCircle, MapPin } from "lucide-react"
 
 const formSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -83,24 +83,39 @@ export default function ContactPage() {
                 <div className="space-y-8">
                     <div>
                         <h3 className="text-2xl font-bold mb-6">Contact Information</h3>
+
                         <div className="space-y-4 text-muted-foreground">
+
+                            {/* Location */}
+                            <div className="flex items-center gap-3">
+                                <MapPin className="h-5 w-5 text-primary" />
+                                <span>Mumbai, India</span>
+                            </div>
+
                             <div className="flex flex-wrap gap-3">
+
                                 <Button asChild variant="outline">
-                                    <a href="tel:7058746797">
+                                    <a href="tel:7058746794">
                                         <Phone className="mr-2 h-4 w-4" />
-                                        Call 7058746797
+                                        Call 7058746794
                                     </a>
                                 </Button>
+                            </div>
+
+                            <div className="flex flex-wrap gap-3">
                                 <Button asChild variant="outline">
                                     <a
-                                        href="https://wa.me/917058746797"
+                                        href="https://wa.me/917058746794"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
                                         <MessageCircle className="mr-2 h-4 w-4" />
-                                        WhatsApp
+                                        Chat on WhatsApp
                                     </a>
                                 </Button>
+                            </div>
+
+                            <div className="flex flex-wrap gap-3">
                                 <Button asChild variant="outline">
                                     <a href="mailto:hello@zentrix.dev">
                                         <Mail className="mr-2 h-4 w-4" />

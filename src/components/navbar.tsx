@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { Hexagon, Menu } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
@@ -36,6 +37,44 @@ function getInitials(name: string) {
     if (parts.length === 0) return "U"
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
     return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+}
+
+function BrandLogo({ compact = false }: { compact?: boolean }) {
+    const [failed, setFailed] = React.useState(false)
+    const logoSizeClass = compact ? "h-8 w-8" : "h-9 w-9"
+    const textClass = compact
+        ? "text-xl font-bold tracking-tight"
+        : "text-2xl font-bold tracking-tight"
+
+    if (failed) {
+        return (
+            <div className="flex items-center gap-2">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-blue-600 to-indigo-500 text-white shadow-sm">
+                    <Hexagon className="h-4 w-4" />
+                </span>
+                <span className={`${textClass} bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent`}>
+                    Zentrix
+                </span>
+            </div>
+        )
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <Image
+                src="/logo.png"
+                alt="Zentrix logo"
+                width={40}
+                height={40}
+                className={`${logoSizeClass} rounded-sm object-contain`}
+                priority
+                onError={() => setFailed(true)}
+            />
+            <span className={`${textClass} bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent`}>
+                Zentrix
+            </span>
+        </div>
+    )
 }
 
 export function Navbar() {
@@ -81,13 +120,8 @@ export function Navbar() {
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
-                <Link href="/" className="flex items-center space-x-2">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-blue-600 to-indigo-500 text-white shadow-sm">
-                        <Hexagon className="h-4 w-4" />
-                    </span>
-                    <span className="text-2xl font-bold tracking-tighter bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-                        Zentrix
-                    </span>
+                <Link href="/" className="flex items-center">
+                    <BrandLogo />
                 </Link>
                 <div className="hidden md:flex flex-1 items-center justify-center space-x-6 text-sm font-medium">
                     {links.map((link) => (
@@ -169,12 +203,7 @@ export function Navbar() {
                                 className="flex items-center"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-blue-600 to-indigo-500 text-white shadow-sm">
-                                    <Hexagon className="h-4 w-4" />
-                                </span>
-                                <span className="font-bold text-2xl tracking-tighter bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-                                    Zentrix
-                                </span>
+                                <BrandLogo compact />
                             </Link>
                             <div className="my-8 flex flex-col space-y-4">
                                 {links.map((link) => (

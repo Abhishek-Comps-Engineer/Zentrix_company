@@ -27,7 +27,7 @@ const services = [
         icon: Smartphone,
         desc: "Cross-platform and native mobile applications for iOS and Android.",
         benefits: ["Native Performance", "Offline Capabilities", "Push Notifications"],
-        pricing: `Starting at ${inr.format(1000000)}`,
+        pricing: `Starting at ${inr.format(10000)}`,
     },
     {
         id: "ai",
@@ -51,7 +51,7 @@ const services = [
         icon: Server,
         desc: "Robust REST and GraphQL APIs to power your ecosystem.",
         benefits: ["Secure", "Well-Documented", "High Availability"],
-        pricing: `Starting at ${inr.format(500000)}`,
+        pricing: `Starting at ${inr.format(5000)}`,
     },
     {
         id: "uiux",
@@ -59,7 +59,7 @@ const services = [
         icon: Palette,
         desc: "User-centered design focused on conversion and intuitive experiences.",
         benefits: ["Wireframing", "Prototyping", "Design Systems"],
-        pricing: `Starting at ${inr.format(200000)}`,
+        pricing: `Starting at ${inr.format(2000)}`,
     }
 ]
 
