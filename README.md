@@ -4,7 +4,7 @@ A complete, production-ready full-stack application built for a software develop
 
 ## 🚀 Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + Shadcn UI + Framer Motion
 - **Database**: PostgreSQL
@@ -105,7 +105,8 @@ docker build -t avieno-platform .
 To run the container:
 
 ```bash
-docker run -p 3000:3000 -e DATABASE_URL="your-db-url" -e JWT_SECRET="your-secret" avieno-platform
+docker run --name avieno-platform --env-file .env -p 3000:3000 avieno-platform
 ```
 
-*(Note: Make sure to update your `next.config.mjs` to set `output: 'standalone'` if using the Dockerfile).*
+Required runtime variables are documented in `.env.example` (at minimum `DATABASE_URL` and `JWT_SECRET`).
+`next.config.ts` already sets `output: "standalone"`.
