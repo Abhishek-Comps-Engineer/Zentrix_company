@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Toaster } from "@/components/ui/sonner"
+import { FloatingWhatsApp } from "@/components/floating-whatsapp"
 
 export const metadata: Metadata = {
   title: "Zentrix - Software Development Company",
@@ -29,6 +30,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
+          <FloatingWhatsApp />
           <Toaster />
         </ThemeProvider>
       </body>
